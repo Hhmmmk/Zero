@@ -73,7 +73,7 @@ class _HomePageState extends State<HomePage> {
               Padding(
                 padding: EdgeInsets.only(bottom: 2),
                 child: Text(
-                  'Australian Farm Innovation',
+                  'Home',
                   style: TextStyle(
                       color: Colors.white,
                       //  fontStyle: FontStyle.italic,
