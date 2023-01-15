@@ -75,7 +75,7 @@ class RealDrawer extends StatelessWidget {
           ),
           child: Center(
               child: Text(
-            'Australia Farm Innovation',
+            'Sample',
             style: TextStyle(
                 fontFamily: 'Poppins',
                 fontSize: 20,
