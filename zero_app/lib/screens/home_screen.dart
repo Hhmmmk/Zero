@@ -29,8 +29,8 @@ class _HomePageState extends State<HomePage> {
         source: ImageSource.camera,
         imageQuality: 50,
         preferredCameraDevice: CameraDevice.front);
-
-    _getStartImageData(image!);
+    if(image == null) return;
+    _getStartImageData(image);
   }
 
   _imageCamera() async {
@@ -38,7 +38,8 @@ class _HomePageState extends State<HomePage> {
         source: ImageSource.camera,
         imageQuality: 50,
         preferredCameraDevice: CameraDevice.front);
-    _getEndImageData(image!);
+    if (image == null) return;
+    _getEndImageData(image);
   }
 
   Future<void> scanQR() async {
@@ -47,8 +48,6 @@ class _HomePageState extends State<HomePage> {
     try {
       barcodeScanRes = await FlutterBarcodeScanner.scanBarcode(
           '#ff6666', 'Cancel', true, ScanMode.QR);
-      //print the data
-      print(barcodeScanRes);
     } on PlatformException {
       barcodeScanRes = 'Failed to get platform version.';
     }
@@ -118,8 +117,8 @@ class _HomePageState extends State<HomePage> {
                           child: InkWell(
                             splashColor: Colors.white,
                             onTap: () async {
-                              scanQR();
-                              _imageFromCamera();
+                              await scanQR();
+                              await _imageFromCamera();
                               context
                                   .read<StartAttendanceProvider>()
                                   .newTimeIn();
