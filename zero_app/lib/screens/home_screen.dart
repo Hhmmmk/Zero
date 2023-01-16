@@ -1,3 +1,4 @@
+import 'package:zero_app/providers/attendace_provider.dart';
 import 'package:zero_app/providers/start_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -17,50 +18,17 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  String _scanBarcode = 'Unknown';
-  //Image Picker
-  XFile? _image;
-
-  final picker = ImagePicker();
-
-  // this is a code get image from Camera -- this is working
-  _imageFromCamera() async {
-    final XFile? image = await ImagePicker().pickImage(
-        source: ImageSource.camera,
-        imageQuality: 50,
-        preferredCameraDevice: CameraDevice.front);
-    if(image == null) return;
-    _getStartImageData(image);
-  }
-
-  _imageCamera() async {
-    final XFile? image = await ImagePicker().pickImage(
-        source: ImageSource.camera,
-        imageQuality: 50,
-        preferredCameraDevice: CameraDevice.front);
-    if (image == null) return;
-    _getEndImageData(image);
-  }
-
-  Future<void> scanQR() async {
-    String barcodeScanRes;
-    // Platform messages may fail, so we use a try/catch PlatformException.
-    try {
-      barcodeScanRes = await FlutterBarcodeScanner.scanBarcode(
-          '#ff6666', 'Cancel', true, ScanMode.QR);
-    } on PlatformException {
-      barcodeScanRes = 'Failed to get platform version.';
-    }
-    if (!mounted) return;
-    setState(() {
-      _scanBarcode = barcodeScanRes;
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<AttendanceProvider>().getLastestTodayAttendance();
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    context.watch<StartAttendanceProvider>().startattendanceList;
-    context.watch<EndAttendanceProvider>().endattendanceList;
+
     return Scaffold(
         drawer: RealDrawer(),
         appBar: AppBar(
@@ -105,100 +73,69 @@ class _HomePageState extends State<HomePage> {
                 const SizedBox(
                   height: 20,
                 ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    //Button Time In
-                    SizedBox.fromSize(
-                      size: Size(120, 120),
-                      child: ClipRect(
-                        child: Material(
-                          color: Colors.blue,
-                          child: InkWell(
-                            splashColor: Colors.white,
-                            onTap: () async {
-                              await scanQR();
-                              await _imageFromCamera();
-                              context
-                                  .read<StartAttendanceProvider>()
-                                  .newTimeIn();
-                            }, // button pressed
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: const <Widget>[
-                                Icon(
-                                  Icons.alarm_add,
-                                  color: Colors.white,
-                                  size: 60,
-                                ),
-                                Text(
-                                  "Time In",
-                                  style: TextStyle(
-                                      fontFamily: 'Poppins',
-                                      fontSize: 20,
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w600),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(
-                      width: 20,
-                    ),
-                    //Button Time out
-                    SizedBox.fromSize(
-                      size: Size(120, 120),
-                      child: ClipRect(
-                          child: Material(
-                        color: Colors.green,
-                        child: InkWell(
-                          splashColor: Colors.white,
-                          onTap: () async {
-                            scanQR();
-                            _imageCamera();
-                            context.read<EndAttendanceProvider>().newTimeOut();
-                          },
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: const <Widget>[
-                              Icon(Icons.logout, color: Colors.white, size: 60),
-                              Text(
-                                'Time Out',
-                                style: TextStyle(
-                                    fontFamily: 'Poppins',
-                                    fontSize: 20,
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w600),
-                              ),
-                            ],
-                          ),
-                        ),
-                      )),
-                    ),
-                  ],
-                ),
+                _checkInOutBtn()
               ],
             ),
           ],
         ));
   }
 
-  void _getStartImageData(XFile file) {
-    final imageBytes = File(file.path).readAsBytesSync();
-    String img64 = base64Encode(imageBytes);
-    print(img64);
-
-    context.read<StartAttendanceProvider>().currentDay.getStartImage(img64);
-  }
-
-  void _getEndImageData(XFile file) {
-    final imageBytes = File(file.path).readAsBytesSync();
-    String img64 = base64Encode(imageBytes);
-    print(img64);
-
-    context.read<EndAttendanceProvider>().endcurrentDay.getEndImage(img64);
+  _checkInOutBtn() {
+    final latestTodayAttendace = context.watch<AttendanceProvider>().latestTodayAttendace;
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: <Widget>[
+        //Button Time In
+        context.watch<AttendanceProvider>().isLoading
+            ? const CircularProgressIndicator()
+            : SizedBox.fromSize(
+                size: const Size(120, 120),
+                child: ClipRect(
+                  child: Material(
+                    color:latestTodayAttendace == null ||
+                                  !latestTodayAttendace.isTimeIn ? Colors.blue : Colors.green,
+                    child: InkWell(
+                      splashColor: Colors.white,
+                      onTap: () {
+                        var isPerformTimeIn = !(latestTodayAttendace?.isTimeIn ?? false);
+                        context.read<AttendanceProvider>().newAttendace(isPerformTimeIn);
+                      },
+                      child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: latestTodayAttendace == null ||
+                                  !latestTodayAttendace.isTimeIn
+                              ? const <Widget>[
+                                  Icon(
+                                    Icons.alarm_add,
+                                    color: Colors.white,
+                                    size: 60,
+                                  ),
+                                  Text(
+                                    "Time In",
+                                    style: TextStyle(
+                                        fontFamily: 'Poppins',
+                                        fontSize: 20,
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w600),
+                                  ),
+                                ]
+                              : const <Widget>[
+                                  Icon(Icons.logout,
+                                      color: Colors.white, size: 60),
+                                  Text(
+                                    'Time Out',
+                                    style: TextStyle(
+                                        fontFamily: 'Poppins',
+                                        fontSize: 20,
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w600),
+                                  ),
+                                ]),
+                    ),
+                  ),
+                ),
+              ),
+      ],
+    );
   }
 }

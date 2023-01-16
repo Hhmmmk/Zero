@@ -1,4 +1,6 @@
 
+import 'dart:ffi';
+
 import 'package:sqflite/sql.dart';
 
 import '../modules/attendance.dart';
@@ -13,11 +15,19 @@ class AttendanceService {
     return res;
   }
 
-  static Future<Attendance?> getTodayAttendance() async {
+  static Future<Attendance?> getLatestTodayAttendance() async {
     final db = await DBProvider.db.database;
     if (db == null) return null;
-    // var res = await db.query(DBProvider.attendanceTableName, where: "date = ?", whereArgs: [CommonUtils.convertDateDDMMYYYY(DateTime.now())]);
-    // return res.isNotEmpty ? Attendance.fromJson(res.first) : null ;
+    var res = await db.query(DBProvider.attendanceTableName, where: "date = ?", whereArgs: [CommonUtils.convertDateDDMMYYYY(DateTime.now())]);
+    if (res.isEmpty) return null;
+    final listAttendanceToday = res.map((e) => Attendance.fromJson(e)).toList();
+    listAttendanceToday.sort((a1, a2) {
+      final time1 = CommonUtils.convertDDMMYYtoDate(a1.date);
+      final time2 = CommonUtils.convertDDMMYYtoDate(a2.date);
+      // latest attendance first
+      return time1.isAfter(time2) ? 0 : 1;
+    });
+    return listAttendanceToday[0];
   }
 
   static Future<List<Attendance>?> getAllAttendance() async {
