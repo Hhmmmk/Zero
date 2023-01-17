@@ -34,7 +34,7 @@ class AttendanceProvider extends ChangeNotifier {
     );
     // save attendace to db
     await AttendanceService.insertAttendance(newAttendance);
-    await AttendanceService.getLatestTodayAttendance();
+    latestTodayAttendace = await AttendanceService.getLatestTodayAttendance();
     notifyListeners();
   }
 
@@ -64,6 +64,17 @@ class AttendanceProvider extends ChangeNotifier {
     notifyListeners();
     latestTodayAttendace = await AttendanceService.getLatestTodayAttendance();
     isLoading = false;
+    notifyListeners();
+  }
+
+  void getAllAttendance() async {
+    listAttendance = await AttendanceService.getAllAttendance();
+    listAttendance.sort((a1, a2) {
+      final time1 = CommonUtils.convertDDMMYYtoDate(a1.date);
+      final time2 = CommonUtils.convertDDMMYYtoDate(a2.date);
+      // latest attendance first
+      return time1.isAfter(time2) ? 0 : 1;
+    });
     notifyListeners();
   }
 }

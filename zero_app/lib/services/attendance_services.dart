@@ -30,9 +30,9 @@ class AttendanceService {
     return listAttendanceToday[0];
   }
 
-  static Future<List<Attendance>?> getAllAttendance() async {
+  static Future<List<Attendance>> getAllAttendance() async {
     final db = await DBProvider.db.database;
-    if (db == null) return null;
+    if (db == null) return [];
     var res = await db.query(DBProvider.attendanceTableName);
     return res.isNotEmpty ? res.map((e) => Attendance.fromJson(e)).toList() : [] ;
   }

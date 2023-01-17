@@ -1,5 +1,6 @@
 import 'package:zero_app/providers/attendace_provider.dart';
 import 'package:zero_app/providers/end_provider.dart';
+import 'package:zero_app/providers/login_provider.dart';
 import 'package:zero_app/providers/start_provider.dart';
 import 'package:zero_app/screens/home_screen.dart';
 import 'package:zero_app/screens/review_screen.dart';
@@ -16,6 +17,9 @@ void main() async {
     providers: [
       ChangeNotifierProvider(
         create: (_) => AttendanceProvider(),
+      ),
+      ChangeNotifierProvider(
+        create: (_) => LoginProvider(),
       ),
     ],
     child: const MyApp(),

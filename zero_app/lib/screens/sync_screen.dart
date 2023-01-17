@@ -1,5 +1,10 @@
+import 'package:collection/collection.dart';
+import 'package:provider/provider.dart';
 import 'package:zero_app/main.dart';
 import 'package:flutter/material.dart';
+import 'package:zero_app/providers/login_provider.dart';
+
+import '../providers/attendace_provider.dart';
 
 class SyncPage extends StatefulWidget {
   const SyncPage({super.key});
@@ -9,8 +14,19 @@ class SyncPage extends StatefulWidget {
 }
 
 class _SyncPageState extends State<SyncPage> {
+  @override
+  void initState() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      showLoginDialog();
+      context.read<AttendanceProvider>().getAllAttendance();
+    });
+    super.initState();
+  }
+
   //password
   bool _isObscure = true;
+  final emailController = TextEditingController();
+  final passwordController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -64,73 +80,6 @@ class _SyncPageState extends State<SyncPage> {
                 onPressed: () {
                   print("You pressed Icon Elevated Button");
                   //Show Dialog
-                  showDialog(
-                      context: context,
-                      builder: (BuildContext context) {
-                        return AlertDialog(
-                            scrollable: true,
-                            title: const Text(
-                              'Login',
-                              style: TextStyle(
-                                  fontFamily: 'Poppins', fontSize: 20),
-                            ),
-                            content: Padding(
-                              padding: EdgeInsets.all(8.00),
-                              child: Container(
-                                // width: MediaQuery.of(context).size.width - 10,
-                                // height: MediaQuery.of(context).size.height - 20,
-                                width: MediaQuery.of(context).size.width * 0.45,
-                                // height:
-                                //     MediaQuery.of(context).size.height * 0.30,
-                                child: Form(
-                                    child: Column(
-                                  children: <Widget>[
-                                    TextFormField(
-                                      keyboardType: TextInputType.emailAddress,
-                                      decoration: const InputDecoration(
-                                        labelText: 'Email',
-                                        labelStyle: TextStyle(
-                                            fontFamily: 'Poppins',
-                                            fontWeight: FontWeight.w500),
-                                        icon: Icon(Icons.email),
-                                      ),
-                                    ),
-                                    TextFormField(
-                                      obscureText: _isObscure,
-                                      decoration: const InputDecoration(
-                                        labelText: 'Password',
-                                        labelStyle: TextStyle(
-                                            fontFamily: 'Poppins',
-                                            fontWeight: FontWeight.w500),
-                                        //icon: Icon(Icons.password),
-                                        icon: Icon(Icons.lock),
-                                      ),
-                                    ),
-                                    const SizedBox(
-                                      height: 25,
-                                    ),
-                                    ElevatedButton(
-                                        onPressed: () {},
-                                        style: ElevatedButton.styleFrom(
-                                            backgroundColor:
-                                                Color.fromARGB(255, 9, 50, 111),
-                                            shape: RoundedRectangleBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(10))),
-                                        child: const Text(
-                                          'LOGIN',
-                                          style: TextStyle(
-                                              fontSize: 22,
-                                              fontFamily: 'Poppins',
-                                              letterSpacing: 2,
-                                              color: Colors.white,
-                                              fontWeight: FontWeight.w600),
-                                        ))
-                                  ],
-                                )),
-                              ),
-                            ));
-                      });
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color.fromARGB(255, 9, 50, 111),
@@ -171,49 +120,7 @@ class _SyncPageState extends State<SyncPage> {
                 shrinkWrap: true,
                 padding: const EdgeInsets.all(16),
                 children: [
-                  PaginatedDataTable(
-                    header: const Text(
-                      'Attendance',
-                      style: TextStyle(
-                          fontFamily: 'Poppins',
-                          fontSize: 20,
-                          fontWeight: FontWeight.w600),
-                    ),
-                    rowsPerPage: 5,
-                    columns: const [
-                      DataColumn(
-                          label: Text(
-                        'Acc ID',
-                        style: TextStyle(
-                            fontFamily: 'Poppins', fontWeight: FontWeight.w600),
-                      )),
-                      DataColumn(
-                          label: Text(
-                        'Name',
-                        style: TextStyle(
-                            fontFamily: 'Poppins', fontWeight: FontWeight.w600),
-                      )),
-                      DataColumn(
-                          label: Text(
-                        'Start In',
-                        style: TextStyle(
-                            fontFamily: 'Poppins', fontWeight: FontWeight.w600),
-                      )),
-                      DataColumn(
-                          label: Text(
-                        'End Time',
-                        style: TextStyle(
-                            fontFamily: 'Poppins', fontWeight: FontWeight.w600),
-                      )),
-                      DataColumn(
-                          label: Text(
-                        'Date',
-                        style: TextStyle(
-                            fontFamily: 'Poppins', fontWeight: FontWeight.w600),
-                      )),
-                    ],
-                    source: _DataSource(context),
-                  ),
+                  _renderTabel(),
                 ],
               ),
             ],
@@ -222,35 +129,149 @@ class _SyncPageState extends State<SyncPage> {
       )),
     );
   }
+
+  _renderTabel() {
+    final listAttendance = context.watch<AttendanceProvider>().listAttendance;
+    final data = listAttendance
+        .map((a) => _Row(a.userId, a.userName, a.time,
+            a.isTimeIn ? 'Time In' : 'Time Out', a.date))
+        .toList();
+    return PaginatedDataTable(
+      header: const Text(
+        'Attendance',
+        style: TextStyle(
+            fontFamily: 'Poppins', fontSize: 20, fontWeight: FontWeight.w600),
+      ),
+      rowsPerPage: 5,
+      columns: const [
+        DataColumn(
+            label: Text(
+          'Acc ID',
+          style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w600),
+        )),
+        DataColumn(
+            label: Text(
+          'Name',
+          style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w600),
+        )),
+        DataColumn(
+            label: Text(
+          'Time',
+          style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w600),
+        )),
+        DataColumn(
+            label: Text(
+          'Type',
+          style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w600),
+        )),
+        DataColumn(
+            label: Text(
+          'Date',
+          style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w600),
+        )),
+      ],
+      source: _DataSource(context, data),
+    );
+  }
+  
+  void showLoginDialog() {
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+              scrollable: true,
+              title: const Text(
+                'Login',
+                style: TextStyle(fontFamily: 'Poppins', fontSize: 20),
+              ),
+              content: Padding(
+                padding: EdgeInsets.all(8.00),
+                child: Container(
+                  // width: MediaQuery.of(context).size.width - 10,
+                  // height: MediaQuery.of(context).size.height - 20,
+                  width: MediaQuery.of(context).size.width * 0.45,
+                  // height:
+                  //     MediaQuery.of(context).size.height * 0.30,
+                  child: Form(
+                      child: Column(
+                    children: <Widget>[
+                      TextFormField(
+                        controller: emailController,
+                        keyboardType: TextInputType.emailAddress,
+                        decoration: const InputDecoration(
+                          labelText: 'Email',
+                          labelStyle: TextStyle(
+                              fontFamily: 'Poppins',
+                              fontWeight: FontWeight.w500),
+                          icon: Icon(Icons.email),
+                        ),
+                      ),
+                      TextFormField(
+                        controller: passwordController,
+                        obscureText: _isObscure,
+                        decoration: const InputDecoration(
+                          labelText: 'Password',
+                          labelStyle: TextStyle(
+                              fontFamily: 'Poppins',
+                              fontWeight: FontWeight.w500),
+                          //icon: Icon(Icons.password),
+                          icon: Icon(Icons.lock),
+                        ),
+                      ),
+                      const SizedBox(
+                        height: 25,
+                      ),
+                      ElevatedButton(
+                          onPressed: login,
+                          style: ElevatedButton.styleFrom(
+                              backgroundColor: Color.fromARGB(255, 9, 50, 111),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10))),
+                          child: const Text(
+                            'LOGIN',
+                            style: TextStyle(
+                                fontSize: 22,
+                                fontFamily: 'Poppins',
+                                letterSpacing: 2,
+                                color: Colors.white,
+                                fontWeight: FontWeight.w600),
+                          ))
+                    ],
+                  )),
+                ),
+              ));
+        },
+      );
+  }
+
+  void login() async {
+    final isLoginSuccess = await context.read<LoginProvider>().login(emailController.text, passwordController.text);
+    // handle login
+    Navigator.of(context).pop();
+  }
 }
 
 class _Row {
   _Row(
-    this.valueA,
-    this.valueB,
-    this.valueC,
-    this.valueD,
-    this.valueE,
+    this.userId,
+    this.userName,
+    this.time,
+    this.isTimeIn,
+    this.date,
   );
 
-  final String valueA;
-  final String valueB;
-  final String valueC;
-  final String valueD;
-  final String valueE;
+  final String userId;
+  final String userName;
+  final String time;
+  final String isTimeIn;
+  final String date;
 
   bool selected = false;
 }
 
 class _DataSource extends DataTableSource {
-  _DataSource(this.context) {
-    _rows = <_Row>[
-      _Row('1001', 'John Doe', '7:30', '4:30', '13/01/32'),
-      _Row('1001', 'John Doe', '7:30', '4:30', '13/01/32'),
-      _Row('1001', 'John Doe', '7:30', '4:30', '13/01/32'),
-      _Row('1001', 'John Doe', '7:30', '4:30', '13/01/32'),
-      _Row('1001', 'John Doe', '7:30', '4:30', '13/01/32'),
-    ];
+  _DataSource(this.context, List<_Row> data) {
+    _rows = data;
   }
 
   final BuildContext context;
@@ -275,11 +296,11 @@ class _DataSource extends DataTableSource {
         }
       },
       cells: [
-        DataCell(Text(row.valueA)),
-        DataCell(Text(row.valueB)),
-        DataCell(Text(row.valueC)),
-        DataCell(Text(row.valueD.toString())),
-        DataCell(Text(row.valueE)),
+        DataCell(Text(row.userId)),
+        DataCell(Text(row.userName)),
+        DataCell(Text(row.time)),
+        DataCell(Text(row.isTimeIn)),
+        DataCell(Text(row.date)),
       ],
     );
   }
