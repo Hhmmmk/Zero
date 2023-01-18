@@ -173,81 +173,109 @@ class _SyncPageState extends State<SyncPage> {
       source: _DataSource(context, data),
     );
   }
-  
+
   void showLoginDialog() {
     showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-              scrollable: true,
-              title: const Text(
-                'Login',
-                style: TextStyle(fontFamily: 'Poppins', fontSize: 20),
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        final isLoginError = context.watch<LoginProvider>().isLoginError;
+        final isLoading = context.watch<LoginProvider>().isLoading;
+        return AlertDialog(
+            scrollable: true,
+            title: const Text(
+              'Login',
+              style: TextStyle(fontFamily: 'Poppins', fontSize: 20),
+            ),
+            content: Padding(
+              padding: EdgeInsets.all(8.00),
+              child: Container(
+                // width: MediaQuery.of(context).size.width - 10,
+                // height: MediaQuery.of(context).size.height - 20,
+                width: MediaQuery.of(context).size.width * 0.45,
+                // height:
+                //     MediaQuery.of(context).size.height * 0.30,
+                child: Form(
+                    child: Column(
+                  children: <Widget>[
+                    TextFormField(
+                      controller: emailController,
+                      keyboardType: TextInputType.emailAddress,
+                      decoration: const InputDecoration(
+                        labelText: 'Email',
+                        labelStyle: TextStyle(
+                            fontFamily: 'Poppins', fontWeight: FontWeight.w500),
+                        icon: Icon(Icons.email),
+                      ),
+                    ),
+                    TextFormField(
+                      controller: passwordController,
+                      obscureText: _isObscure,
+                      decoration: const InputDecoration(
+                        labelText: 'Password',
+                        labelStyle: TextStyle(
+                            fontFamily: 'Poppins', fontWeight: FontWeight.w500),
+                        //icon: Icon(Icons.password),
+                        icon: Icon(Icons.lock),
+                      ),
+                    ),
+                    const SizedBox(
+                      height: 25,
+                    ),
+                    isLoginError
+                        ? const Padding(
+                            padding: EdgeInsets.only(bottom: 15),
+                            child: Text(
+                              'Email or password is incorrect',
+                              style: TextStyle(
+                                color: Colors.red,
+                                fontSize: 14,
+                              ),
+                            ),
+                          )
+                        : Container(),
+                    Container(
+                      width: 130,
+                      child: ElevatedButton(
+                        onPressed: login,
+                        style: ElevatedButton.styleFrom(
+                            backgroundColor: Color.fromARGB(255, 9, 50, 111),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10))),
+                        child: !isLoading
+                            ? const Text(
+                                'LOGIN',
+                                style: TextStyle(
+                                    fontSize: 22,
+                                    fontFamily: 'Poppins',
+                                    letterSpacing: 2,
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w600),
+                              )
+                            : Container(
+                                width: 15,
+                                height: 15,
+                                child: const CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 3.0,
+                                ),
+                              ),
+                      ),
+                    )
+                  ],
+                )),
               ),
-              content: Padding(
-                padding: EdgeInsets.all(8.00),
-                child: Container(
-                  // width: MediaQuery.of(context).size.width - 10,
-                  // height: MediaQuery.of(context).size.height - 20,
-                  width: MediaQuery.of(context).size.width * 0.45,
-                  // height:
-                  //     MediaQuery.of(context).size.height * 0.30,
-                  child: Form(
-                      child: Column(
-                    children: <Widget>[
-                      TextFormField(
-                        controller: emailController,
-                        keyboardType: TextInputType.emailAddress,
-                        decoration: const InputDecoration(
-                          labelText: 'Email',
-                          labelStyle: TextStyle(
-                              fontFamily: 'Poppins',
-                              fontWeight: FontWeight.w500),
-                          icon: Icon(Icons.email),
-                        ),
-                      ),
-                      TextFormField(
-                        controller: passwordController,
-                        obscureText: _isObscure,
-                        decoration: const InputDecoration(
-                          labelText: 'Password',
-                          labelStyle: TextStyle(
-                              fontFamily: 'Poppins',
-                              fontWeight: FontWeight.w500),
-                          //icon: Icon(Icons.password),
-                          icon: Icon(Icons.lock),
-                        ),
-                      ),
-                      const SizedBox(
-                        height: 25,
-                      ),
-                      ElevatedButton(
-                          onPressed: login,
-                          style: ElevatedButton.styleFrom(
-                              backgroundColor: Color.fromARGB(255, 9, 50, 111),
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10))),
-                          child: const Text(
-                            'LOGIN',
-                            style: TextStyle(
-                                fontSize: 22,
-                                fontFamily: 'Poppins',
-                                letterSpacing: 2,
-                                color: Colors.white,
-                                fontWeight: FontWeight.w600),
-                          ))
-                    ],
-                  )),
-                ),
-              ));
-        },
-      );
+            ));
+      },
+    );
   }
 
   void login() async {
-    final isLoginSuccess = await context.read<LoginProvider>().login(emailController.text, passwordController.text);
-    // handle login
-    Navigator.of(context).pop();
+    context
+        .read<LoginProvider>()
+        .login(emailController.text, passwordController.text).then((value) {
+            if (value == true) Navigator.of(context).pop();
+        });
   }
 }
 

@@ -1,11 +1,8 @@
 import 'package:zero_app/providers/attendace_provider.dart';
-import 'package:zero_app/providers/end_provider.dart';
 import 'package:zero_app/providers/login_provider.dart';
-import 'package:zero_app/providers/start_provider.dart';
 import 'package:zero_app/screens/home_screen.dart';
 import 'package:zero_app/screens/review_screen.dart';
 import 'package:zero_app/screens/setting_screen.dart';
-import 'package:zero_app/screens/splash_screen.dart';
 import 'package:zero_app/screens/sync_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';

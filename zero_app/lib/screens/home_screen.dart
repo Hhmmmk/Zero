@@ -1,14 +1,7 @@
 import 'package:zero_app/providers/attendace_provider.dart';
-import 'package:zero_app/providers/start_provider.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'dart:convert';
-import 'dart:io';
 import 'package:provider/provider.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 import '../main.dart';
-import '../providers/end_provider.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
