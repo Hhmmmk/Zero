@@ -1,3 +1,6 @@
+import 'dart:convert';
+
+import 'package:zero_app/modules/user.dart';
 import 'package:zero_app/providers/attendace_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -14,14 +17,11 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<AttendanceProvider>().getLastestTodayAttendance();
-    });
   }
 
   @override
   Widget build(BuildContext context) {
-
+    final currentUser = context.watch<AttendanceProvider>().currentUser;
     return Scaffold(
         drawer: RealDrawer(),
         appBar: AppBar(
@@ -47,7 +47,7 @@ class _HomePageState extends State<HomePage> {
         ),
         body: Column(
           children: [
-            SizedBox(
+            const SizedBox(
               height: 20,
             ),
             const SizedBox(
@@ -56,9 +56,9 @@ class _HomePageState extends State<HomePage> {
             Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
-                const Text(
-                  "Attendance QR Code",
-                  style: TextStyle(
+                Text(
+                  currentUser == null ? "Attendance QR Code" : "Hello ${currentUser.name}",
+                  style: const TextStyle(
                       fontFamily: 'Poppins',
                       fontSize: 20,
                       fontWeight: FontWeight.w600),
@@ -66,7 +66,8 @@ class _HomePageState extends State<HomePage> {
                 const SizedBox(
                   height: 20,
                 ),
-                _checkInOutBtn()
+                currentUser == null ? _attendanceBtn() : _checkInOutBtn(),
+                // _checkInOutBtn()
               ],
             ),
           ],
@@ -74,61 +75,107 @@ class _HomePageState extends State<HomePage> {
   }
 
   _checkInOutBtn() {
-    final latestTodayAttendace = context.watch<AttendanceProvider>().latestTodayAttendace;
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: <Widget>[
-        //Button Time In
-        context.watch<AttendanceProvider>().isLoading
-            ? const CircularProgressIndicator()
-            : SizedBox.fromSize(
-                size: const Size(120, 120),
-                child: ClipRect(
-                  child: Material(
-                    color:latestTodayAttendace == null ||
-                                  !latestTodayAttendace.isTimeIn ? Colors.blue : Colors.green,
-                    child: InkWell(
-                      splashColor: Colors.white,
-                      onTap: () {
-                        var isPerformTimeIn = !(latestTodayAttendace?.isTimeIn ?? false);
-                        context.read<AttendanceProvider>().newAttendace(isPerformTimeIn);
-                      },
-                      child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: latestTodayAttendace == null ||
-                                  !latestTodayAttendace.isTimeIn
-                              ? const <Widget>[
-                                  Icon(
-                                    Icons.alarm_add,
-                                    color: Colors.white,
-                                    size: 60,
-                                  ),
-                                  Text(
-                                    "Time In",
-                                    style: TextStyle(
-                                        fontFamily: 'Poppins',
-                                        fontSize: 20,
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.w600),
-                                  ),
-                                ]
-                              : const <Widget>[
-                                  Icon(Icons.logout,
-                                      color: Colors.white, size: 60),
-                                  Text(
-                                    'Time Out',
-                                    style: TextStyle(
-                                        fontFamily: 'Poppins',
-                                        fontSize: 20,
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.w600),
-                                  ),
-                                ]),
-                    ),
+    final latestTodayAttendaceOfCurrentUser =
+        context.watch<AttendanceProvider>().latestTodayAttendaceOfCurrentUser;
+    return Row(mainAxisAlignment: MainAxisAlignment.center, children: <Widget>[
+      //Button Time In
+      context.watch<AttendanceProvider>().isLoading
+          ? const CircularProgressIndicator()
+          : SizedBox.fromSize(
+              size: const Size(120, 120),
+              child: ClipRect(
+                child: Material(
+                  color: latestTodayAttendaceOfCurrentUser == null ||
+                          !latestTodayAttendaceOfCurrentUser.isTimeIn
+                      ? Colors.blue
+                      : Colors.green,
+                  child: InkWell(
+                    splashColor: Colors.white,
+                    onTap: () {
+                      var isPerformTimeIn =
+                          !(latestTodayAttendaceOfCurrentUser?.isTimeIn ?? false);
+                      context
+                          .read<AttendanceProvider>()
+                          .newAttendace(isPerformTimeIn);
+                    },
+                    child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: latestTodayAttendaceOfCurrentUser == null ||
+                                !latestTodayAttendaceOfCurrentUser.isTimeIn
+                            ? const <Widget>[
+                                Icon(
+                                  Icons.alarm_add,
+                                  color: Colors.white,
+                                  size: 60,
+                                ),
+                                Text(
+                                  "Time In",
+                                  style: TextStyle(
+                                      fontFamily: 'Poppins',
+                                      fontSize: 20,
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w600),
+                                ),
+                              ]
+                            : const <Widget>[
+                                Icon(Icons.logout,
+                                    color: Colors.white, size: 60),
+                                Text(
+                                  'Time Out',
+                                  style: TextStyle(
+                                      fontFamily: 'Poppins',
+                                      fontSize: 20,
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w600),
+                                ),
+                              ]),
                   ),
                 ),
               ),
-      ],
+            )
+    ]);
+  }
+
+  _attendanceBtn() {
+    return Center(
+      child: ClipRect(
+        child: Material(
+          color: Colors.blueAccent,
+          child: InkWell(
+            splashColor: Colors.white,
+            onTap: changeCurrentUser,
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: const <Widget>[
+                    Icon(
+                      Icons.qr_code,
+                      color: Colors.white,
+                      size: 60,
+                    ),
+                    Text(
+                      "Attendance",
+                      style: TextStyle(
+                          fontFamily: 'Poppins',
+                          fontSize: 20,
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600),
+                    ),
+                  ]),
+            ),
+          ),
+        ),
+      ),
     );
+  }
+
+  changeCurrentUser() async {
+    final provider = context.read<AttendanceProvider>();
+    final data = await provider.scanQR();
+    if (data == null) return;
+    final userData = jsonDecode(data);
+    final user = User(userData['accid'], userData['name']);
+    await provider.changeUser(user);
   }
 }

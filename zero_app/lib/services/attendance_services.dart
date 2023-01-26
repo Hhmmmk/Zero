@@ -15,10 +15,10 @@ class AttendanceService {
     return res;
   }
 
-  static Future<Attendance?> getLatestTodayAttendance() async {
+  static Future<Attendance?> getLatestTodayAttendanceOfUser(String userId) async {
     final db = await DBProvider.db.database;
     if (db == null) return null;
-    var res = await db.query(DBProvider.attendanceTableName, where: "date = ?", whereArgs: [CommonUtils.convertDateDDMMYYYY(DateTime.now())]);
+    var res = await db.query(DBProvider.attendanceTableName, where: "date = ? AND userId = ?", whereArgs: [CommonUtils.convertDateDDMMYYYY(DateTime.now()), userId]);
     if (res.isEmpty) return null;
     final listAttendanceToday = res.map((e) => Attendance.fromJson(e)).toList();
     listAttendanceToday.sort((a1, a2) {
