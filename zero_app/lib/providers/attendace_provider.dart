@@ -1,3 +1,5 @@
+// ignore_for_file: unnecessary_string_escapes
+
 import 'dart:convert';
 import 'dart:io';
 
@@ -6,12 +8,12 @@ import 'package:flutter/services.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:attendance_kiosk/modules/attendance.dart';
+import 'package:attendance_kiosk/services/attendance_services.dart';
+import 'package:attendance_kiosk/utils/common_utils.dart';
+import 'package:http/http.dart' as http;
 
-import 'package:zero_app/modules/attendance.dart';
-import 'package:zero_app/modules/user.dart';
-import 'package:zero_app/services/attendance_services.dart';
-
-import '../utils/common_utils.dart';
+import '../modules/user.dart';
 
 class AttendanceProvider extends ChangeNotifier {
   Attendance? latestTodayAttendaceOfCurrentUser;
@@ -19,14 +21,15 @@ class AttendanceProvider extends ChangeNotifier {
   bool isLoading = false;
   User? currentUser;
 
-
   void newAttendace(bool isTimeIn) async {
     if (currentUser == null) return;
     final img = await _getStartImageData();
+
     if (img == null) return;
     final now = DateTime.now();
-    final date = CommonUtils.convertDateDDMMYYYY(now); 
-    final time = CommonUtils.convertTimeHHMMss(now); 
+    final date = CommonUtils.convertDateDDMMYYYY(now);
+    final time = CommonUtils.convertTimeHHMMss(now);
+
     final newAttendance = Attendance(
       id: CommonUtils.generateId(),
       date: date,
@@ -34,14 +37,64 @@ class AttendanceProvider extends ChangeNotifier {
       time: time,
       isTimeIn: isTimeIn,
       userId: currentUser!.accid,
+      userCode: currentUser!.employeeCode,
       userName: currentUser!.name,
     );
-    // save attendace to db
+
+    // save attendance to db
     await AttendanceService.insertAttendance(newAttendance);
-    latestTodayAttendaceOfCurrentUser = await AttendanceService.getLatestTodayAttendanceOfUser(currentUser!.accid);
+    latestTodayAttendaceOfCurrentUser =
+        await AttendanceService.getLatestTodayAttendanceOfUser(
+            currentUser!.accid);
+
+    // post Attendance
+    await postAttendance(currentUser!.accid, isTimeIn ? 'Time-in' : 'Time-out',
+        newAttendance.date, newAttendance.time);
+
     resetUser();
     notifyListeners();
     showAttendanceSuccessfullyToast(isTimeIn);
+  }
+
+  //send data to api
+  Future<Attendance> postAttendance(
+      String accountId, String type, String date, String time) async {
+    var queryParameters = {
+      'deviceId': '1',
+      'deviceCode': 'afi_ast',
+      'token':
+          "\$2y\$10\$Gae33.BuN\/e1NLiYNw0.f.2g6Bi30Hkcas\/ra0n\/2gugauby6Pcd2",
+      'accountId': accountId,
+      'type': type,
+      'time': '$date $time',
+    };
+
+    var uri = Uri.https(
+        'demo.ast.com.ph', '/api/devices/attendance/store', queryParameters);
+
+    //checking
+    print('url: $uri');
+
+    final http.Response response =
+        await http.post(uri, headers: <String, String>{
+      'Content-Type': 'application/json; charset=UTF-8',
+    });
+
+    // Dispatch action depending upon
+    // the server response
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      return Attendance(
+          userId: currentUser!.accid,
+          userCode: currentUser!.employeeCode,
+          userName: currentUser!.name,
+          id: 'test',
+          img: 'test',
+          time: 'test',
+          date: 'test',
+          isTimeIn: true);
+    } else {
+      throw Exception('Response: ${response.statusCode}');
+    }
   }
 
   Future<String?> _getStartImageData() async {
@@ -69,7 +122,9 @@ class AttendanceProvider extends ChangeNotifier {
     if (currentUser == null) return;
     isLoading = true;
     notifyListeners();
-    latestTodayAttendaceOfCurrentUser = await AttendanceService.getLatestTodayAttendanceOfUser(currentUser!.accid);
+    latestTodayAttendaceOfCurrentUser =
+        await AttendanceService.getLatestTodayAttendanceOfUser(
+            currentUser!.accid);
     isLoading = false;
     notifyListeners();
   }
@@ -95,7 +150,7 @@ class AttendanceProvider extends ChangeNotifier {
     currentUser = null;
     notifyListeners();
   }
-  
+
   void showAttendanceSuccessfullyToast(bool isTimeIn) {
     Fluttertoast.showToast(
         msg: "Perform ${isTimeIn ? "Time In" : "Time Out"} Successfully",
@@ -104,7 +159,6 @@ class AttendanceProvider extends ChangeNotifier {
         timeInSecForIosWeb: 1,
         backgroundColor: Colors.black,
         textColor: Colors.white,
-        fontSize: 16.0
-    );
+        fontSize: 16.0);
   }
 }
