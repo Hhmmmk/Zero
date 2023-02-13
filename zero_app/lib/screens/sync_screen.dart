@@ -17,7 +17,7 @@ class _SyncPageState extends State<SyncPage> {
   @override
   void initState() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      showLoginDialog();
+      //showLoginDialog();
       context.read<AttendanceProvider>().getAllAttendance();
     });
     super.initState();
@@ -133,7 +133,7 @@ class _SyncPageState extends State<SyncPage> {
   _renderTabel() {
     final listAttendance = context.watch<AttendanceProvider>().listAttendance;
     final data = listAttendance
-        .map((a) => _Row(a.userId, a.userName, a.time,
+        .map((a) => _Row(a.userId, a.userName, a.userCode, a.time,
             a.isTimeIn ? 'Time In' : 'Time Out', a.date))
         .toList();
     return PaginatedDataTable(
@@ -146,27 +146,32 @@ class _SyncPageState extends State<SyncPage> {
       columns: const [
         DataColumn(
             label: Text(
-          'Acc ID',
+          'ACC ID',
           style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w600),
         )),
         DataColumn(
             label: Text(
-          'Name',
+          'EMPLOYEE CODE',
           style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w600),
         )),
         DataColumn(
             label: Text(
-          'Time',
+          'NAME',
           style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w600),
         )),
         DataColumn(
             label: Text(
-          'Type',
+          'TIME',
           style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w600),
         )),
         DataColumn(
             label: Text(
-          'Date',
+          'TYPE',
+          style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w600),
+        )),
+        DataColumn(
+            label: Text(
+          'DATE',
           style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w600),
         )),
       ],
@@ -174,108 +179,110 @@ class _SyncPageState extends State<SyncPage> {
     );
   }
 
-  void showLoginDialog() {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        final isLoginError = context.watch<LoginProvider>().isLoginError;
-        final isLoading = context.watch<LoginProvider>().isLoading;
-        return AlertDialog(
-            scrollable: true,
-            title: const Text(
-              'Login',
-              style: TextStyle(fontFamily: 'Poppins', fontSize: 20),
-            ),
-            content: Padding(
-              padding: EdgeInsets.all(8.00),
-              child: Container(
-                // width: MediaQuery.of(context).size.width - 10,
-                // height: MediaQuery.of(context).size.height - 20,
-                width: MediaQuery.of(context).size.width * 0.45,
-                // height:
-                //     MediaQuery.of(context).size.height * 0.30,
-                child: Form(
-                    child: Column(
-                  children: <Widget>[
-                    TextFormField(
-                      controller: emailController,
-                      keyboardType: TextInputType.emailAddress,
-                      decoration: const InputDecoration(
-                        labelText: 'Email',
-                        labelStyle: TextStyle(
-                            fontFamily: 'Poppins', fontWeight: FontWeight.w500),
-                        icon: Icon(Icons.email),
-                      ),
-                    ),
-                    TextFormField(
-                      controller: passwordController,
-                      obscureText: _isObscure,
-                      decoration: const InputDecoration(
-                        labelText: 'Password',
-                        labelStyle: TextStyle(
-                            fontFamily: 'Poppins', fontWeight: FontWeight.w500),
-                        //icon: Icon(Icons.password),
-                        icon: Icon(Icons.lock),
-                      ),
-                    ),
-                    const SizedBox(
-                      height: 25,
-                    ),
-                    isLoginError
-                        ? const Padding(
-                            padding: EdgeInsets.only(bottom: 15),
-                            child: Text(
-                              'Email or password is incorrect',
-                              style: TextStyle(
-                                color: Colors.red,
-                                fontSize: 14,
-                              ),
-                            ),
-                          )
-                        : Container(),
-                    Container(
-                      width: 130,
-                      child: ElevatedButton(
-                        onPressed: login,
-                        style: ElevatedButton.styleFrom(
-                            backgroundColor: Color.fromARGB(255, 9, 50, 111),
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10))),
-                        child: !isLoading
-                            ? const Text(
-                                'LOGIN',
-                                style: TextStyle(
-                                    fontSize: 22,
-                                    fontFamily: 'Poppins',
-                                    letterSpacing: 2,
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w600),
-                              )
-                            : Container(
-                                width: 15,
-                                height: 15,
-                                child: const CircularProgressIndicator(
-                                  color: Colors.white,
-                                  strokeWidth: 3.0,
-                                ),
-                              ),
-                      ),
-                    )
-                  ],
-                )),
-              ),
-            ));
-      },
-    );
-  }
+  /* NOTE: THIS IS WORKING LOGIN */
+  // void showLoginDialog() {
+  //   showDialog(
+  //     context: context,
+  //     barrierDismissible: false,
+  //     builder: (BuildContext context) {
+  //       final isLoginError = context.watch<LoginProvider>().isLoginError;
+  //       final isLoading = context.watch<LoginProvider>().isLoading;
+  //       return AlertDialog(
+  //           scrollable: true,
+  //           title: const Text(
+  //             'Login',
+  //             style: TextStyle(fontFamily: 'Poppins', fontSize: 20),
+  //           ),
+  //           content: Padding(
+  //             padding: EdgeInsets.all(8.00),
+  //             child: Container(
+  //               // width: MediaQuery.of(context).size.width - 10,
+  //               // height: MediaQuery.of(context).size.height - 20,
+  //               width: MediaQuery.of(context).size.width * 0.45,
+  //               // height:
+  //               //     MediaQuery.of(context).size.height * 0.30,
+  //               child: Form(
+  //                   child: Column(
+  //                 children: <Widget>[
+  //                   TextFormField(
+  //                     controller: emailController,
+  //                     keyboardType: TextInputType.emailAddress,
+  //                     decoration: const InputDecoration(
+  //                       labelText: 'Email',
+  //                       labelStyle: TextStyle(
+  //                           fontFamily: 'Poppins', fontWeight: FontWeight.w500),
+  //                       icon: Icon(Icons.email),
+  //                     ),
+  //                   ),
+  //                   TextFormField(
+  //                     controller: passwordController,
+  //                     obscureText: _isObscure,
+  //                     decoration: const InputDecoration(
+  //                       labelText: 'Password',
+  //                       labelStyle: TextStyle(
+  //                           fontFamily: 'Poppins', fontWeight: FontWeight.w500),
+  //                       //icon: Icon(Icons.password),
+  //                       icon: Icon(Icons.lock),
+  //                     ),
+  //                   ),
+  //                   const SizedBox(
+  //                     height: 25,
+  //                   ),
+  //                   isLoginError
+  //                       ? const Padding(
+  //                           padding: EdgeInsets.only(bottom: 15),
+  //                           child: Text(
+  //                             'Email or password is incorrect',
+  //                             style: TextStyle(
+  //                               color: Colors.red,
+  //                               fontSize: 14,
+  //                             ),
+  //                           ),
+  //                         )
+  //                       : Container(),
+  //                   Container(
+  //                     width: 130,
+  //                     child: ElevatedButton(
+  //                       onPressed: login,
+  //                       style: ElevatedButton.styleFrom(
+  //                           backgroundColor: Color.fromARGB(255, 9, 50, 111),
+  //                           shape: RoundedRectangleBorder(
+  //                               borderRadius: BorderRadius.circular(10))),
+  //                       child: !isLoading
+  //                           ? const Text(
+  //                               'LOGIN',
+  //                               style: TextStyle(
+  //                                   fontSize: 22,
+  //                                   fontFamily: 'Poppins',
+  //                                   letterSpacing: 2,
+  //                                   color: Colors.white,
+  //                                   fontWeight: FontWeight.w600),
+  //                             )
+  //                           : Container(
+  //                               width: 15,
+  //                               height: 15,
+  //                               child: const CircularProgressIndicator(
+  //                                 color: Colors.white,
+  //                                 strokeWidth: 3.0,
+  //                               ),
+  //                             ),
+  //                     ),
+  //                   )
+  //                 ],
+  //               )),
+  //             ),
+  //           ));
+  //     },
+  //   );
+  // }
 
   void login() async {
     context
         .read<LoginProvider>()
-        .login(emailController.text, passwordController.text).then((value) {
-            if (value == true) Navigator.of(context).pop();
-        });
+        .login(emailController.text, passwordController.text)
+        .then((value) {
+      if (value == true) Navigator.of(context).pop();
+    });
   }
 }
 
@@ -283,6 +290,7 @@ class _Row {
   _Row(
     this.userId,
     this.userName,
+    this.userCode,
     this.time,
     this.isTimeIn,
     this.date,
@@ -290,6 +298,7 @@ class _Row {
 
   final String userId;
   final String userName;
+  final String userCode;
   final String time;
   final String isTimeIn;
   final String date;
@@ -325,6 +334,7 @@ class _DataSource extends DataTableSource {
       },
       cells: [
         DataCell(Text(row.userId)),
+        DataCell(Text(row.userCode)),
         DataCell(Text(row.userName)),
         DataCell(Text(row.time)),
         DataCell(Text(row.isTimeIn)),

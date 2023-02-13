@@ -1,6 +1,3 @@
-
-import 'dart:ffi';
-
 import 'package:sqflite/sql.dart';
 
 import '../modules/attendance.dart';
@@ -11,14 +8,19 @@ class AttendanceService {
   static insertAttendance(Attendance attendance) async {
     final db = await DBProvider.db.database;
     if (db == null) return;
-    var res = await db.insert(DBProvider.attendanceTableName, attendance.toJson(), conflictAlgorithm: ConflictAlgorithm.replace);
+    var res = await db.insert(
+        DBProvider.attendanceTableName, attendance.toJson(),
+        conflictAlgorithm: ConflictAlgorithm.replace);
     return res;
   }
 
-  static Future<Attendance?> getLatestTodayAttendanceOfUser(String userId) async {
+  static Future<Attendance?> getLatestTodayAttendanceOfUser(
+      String userId) async {
     final db = await DBProvider.db.database;
     if (db == null) return null;
-    var res = await db.query(DBProvider.attendanceTableName, where: "date = ? AND userId = ?", whereArgs: [CommonUtils.convertDateDDMMYYYY(DateTime.now()), userId]);
+    var res = await db.query(DBProvider.attendanceTableName,
+        where: "date = ? AND userId = ?",
+        whereArgs: [CommonUtils.convertDateDDMMYYYY(DateTime.now()), userId]);
     if (res.isEmpty) return null;
     final listAttendanceToday = res.map((e) => Attendance.fromJson(e)).toList();
     listAttendanceToday.sort((a1, a2) {
@@ -34,6 +36,8 @@ class AttendanceService {
     final db = await DBProvider.db.database;
     if (db == null) return [];
     var res = await db.query(DBProvider.attendanceTableName);
-    return res.isNotEmpty ? res.map((e) => Attendance.fromJson(e)).toList() : [] ;
+    return res.isNotEmpty
+        ? res.map((e) => Attendance.fromJson(e)).toList()
+        : [];
   }
 }

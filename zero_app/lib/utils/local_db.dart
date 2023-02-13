@@ -21,7 +21,7 @@ class DBProvider {
 
   initDB() async {
     Directory documentsDirectory = await getApplicationDocumentsDirectory();
-    String path = "${documentsDirectory.path}zero.db";
+    String path = "${documentsDirectory.path}kiosk.db";
     return await openDatabase(
       path,
       version: 1,
@@ -36,6 +36,7 @@ class DBProvider {
     await db.execute("CREATE TABLE $attendanceTableName ("
         "id TEXT PRIMARY KEY,"
         "userId TEXT,"
+        "userCode TEXT,"
         "userName TEXT,"
         "date TEXT,"
         "time TEXT,"

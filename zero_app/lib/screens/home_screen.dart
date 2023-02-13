@@ -57,7 +57,9 @@ class _HomePageState extends State<HomePage> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
                 Text(
-                  currentUser == null ? "Attendance QR Code" : "Hello ${currentUser.name}",
+                  currentUser == null
+                      ? "Attendance QR Code"
+                      : "Hello ${currentUser.name}",
                   style: const TextStyle(
                       fontFamily: 'Poppins',
                       fontSize: 20,
@@ -93,7 +95,8 @@ class _HomePageState extends State<HomePage> {
                     splashColor: Colors.white,
                     onTap: () {
                       var isPerformTimeIn =
-                          !(latestTodayAttendaceOfCurrentUser?.isTimeIn ?? false);
+                          !(latestTodayAttendaceOfCurrentUser?.isTimeIn ??
+                              false);
                       context
                           .read<AttendanceProvider>()
                           .newAttendace(isPerformTimeIn);
@@ -170,12 +173,14 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+//user
   changeCurrentUser() async {
     final provider = context.read<AttendanceProvider>();
     final data = await provider.scanQR();
     if (data == null) return;
     final userData = jsonDecode(data);
-    final user = User(userData['accid'], userData['name']);
+    final user =
+        User(userData['accid'], userData['employeeCode'], userData['name']);
     await provider.changeUser(user);
   }
 }

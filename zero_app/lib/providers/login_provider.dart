@@ -22,7 +22,7 @@ class LoginProvider extends ChangeNotifier {
     );
     isLoading = false;
     if (response.statusCode == 200 || response.statusCode == 201) {
-      final loginResponse =  LoginResponse.fromJson(jsonDecode(response.body));
+      final loginResponse = LoginResponse.fromJson(jsonDecode(response.body));
       isLoginError = false;
       notifyListeners();
       return true;

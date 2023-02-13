@@ -8,12 +8,12 @@ import 'package:flutter/services.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:attendance_kiosk/modules/attendance.dart';
-import 'package:attendance_kiosk/services/attendance_services.dart';
-import 'package:attendance_kiosk/utils/common_utils.dart';
 import 'package:http/http.dart' as http;
 
+import '../modules/attendance.dart';
 import '../modules/user.dart';
+import '../services/attendance_services.dart';
+import '../utils/common_utils.dart';
 
 class AttendanceProvider extends ChangeNotifier {
   Attendance? latestTodayAttendaceOfCurrentUser;
@@ -84,14 +84,15 @@ class AttendanceProvider extends ChangeNotifier {
     // the server response
     if (response.statusCode == 200 || response.statusCode == 201) {
       return Attendance(
-          userId: currentUser!.accid,
-          userCode: currentUser!.employeeCode,
-          userName: currentUser!.name,
-          id: 'test',
-          img: 'test',
-          time: 'test',
-          date: 'test',
-          isTimeIn: true);
+        userId: currentUser!.accid,
+        userCode: currentUser!.employeeCode,
+        userName: currentUser!.name,
+        id: 'test',
+        img: 'test',
+        time: 'test',
+        date: 'test',
+        isTimeIn: true,
+      );
     } else {
       throw Exception('Response: ${response.statusCode}');
     }
